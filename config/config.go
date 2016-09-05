@@ -10,15 +10,17 @@ import (
 )
 
 type Config struct {
-	DBUser     string
-	DBPassword string
-	DBName     string
+	DBUser         string
+	DBPassword     string
+	DBName         string
+	DeepLoggerPath string
 }
 
 const (
 	DB_USER     = "DB_USER"
 	DB_PASSWORD = "DB_PASSWORD"
 	DB_NAME     = "DB_NAME"
+	DL_PATH     = "DEEP_LOGGER_PATH"
 )
 
 //Generates config from a file.
@@ -60,6 +62,11 @@ func LoadConfigFromString(configString string) (config *Config, err error) {
 		return nil, errors.New("DB_NAME not found.")
 	} else {
 		conf.DBName = dName.(string)
+	}
+	if dlPath, ok := dictRepres[DL_PATH]; !ok {
+		return nil, errors.New("DEEP_LOGGER_PATH not found.")
+	} else {
+		conf.DeepLoggerPath = dlPath.(string)
 	}
 
 	return &conf, nil
