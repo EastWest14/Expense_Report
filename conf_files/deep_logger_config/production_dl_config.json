@@ -1,8 +1,9 @@
 {"dispatcher_name": "Expense_Tracker_Logger",
 	"isOn": true,
-	"inputHandlers": ["Main"],
+	"inputHandlers": ["Main", "DB_Accessor"],
 	"outputHandlers": ["Out"],
 	"dispatchRules": [
-		{"input":"Main", "output": "Out"}
+		{"input":"Main", "output": "Out"},
+		{"input":"DB_Accessor", "output": "Out"}
 	]
 }

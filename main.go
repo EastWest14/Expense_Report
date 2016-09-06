@@ -2,6 +2,7 @@ package main
 
 import (
 	"Expense_Tracker/config"
+	"Expense_Tracker/dbaccessor"
 	"errors"
 	dl "github.com/Deep-Logger"
 	"github.com/Deep-Logger/event"
@@ -13,9 +14,12 @@ import (
 const (
 	TEMP_PROD_CONFIG_PATH = "./conf_files/prod_config/prod_config.json"
 
-	MAIN_INPUT_HANDLER_NAME = "Main"
-	OUTPUT_HANDLER_NAME     = "Out"
+	MAIN_INPUT_HANDLER_NAME        = "Main"
+	DB_ACCESSOR_INPUT_HANDLER_NAME = "DB_Accessor"
+	OUTPUT_HANDLER_NAME            = "Out"
 )
+
+var dbAccessModule dbaccessor.DBAccessModule
 
 func main() {
 	config, err := config.LoadConfigFromFile(TEMP_PROD_CONFIG_PATH)
@@ -26,13 +30,26 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	mainInpHandler.LogEvent(event.New("Hello"))
+	mainInpHandler.LogEvent(event.New(`Deep Logger succesfully configured.`))
+	setupApplication(config)
+}
+
+func setupApplication(conf *config.Config) {
+	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
+	setupDBAccessModule(conf)
+	mainInpHandler.LogEvent(event.New(`DB Access Module succesfully configured.`))
+}
+
+func setupDBAccessModule(conf *config.Config) {
+	dbAccessModule = dbaccessor.NewDBAccessModule()
+	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 }
 
 var mainInpHandler dlhandlers.InputHandler
+var dbAccessorInpHandler dlhandlers.InputHandler
+
 var outHandler dlhandlers.OutputHandler
 
-//temp
 func constructDeepLoggerSystem(filepath string) error {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -47,6 +64,10 @@ func constructDeepLoggerSystem(filepath string) error {
 	mainInpHandler, ok = inpHandlers[MAIN_INPUT_HANDLER_NAME]
 	if !ok {
 		return errors.New("Main input handler not found")
+	}
+	dbAccessorInpHandler, ok = inpHandlers[DB_ACCESSOR_INPUT_HANDLER_NAME]
+	if !ok {
+		return errors.New("DB Accessor input handler not found")
 	}
 	outHandler, ok = outHandlers[OUTPUT_HANDLER_NAME]
 	if !ok {
