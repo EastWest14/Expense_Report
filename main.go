@@ -4,6 +4,7 @@ import (
 	"Expense_Tracker/config"
 	"Expense_Tracker/dbaccessor"
 	"errors"
+	"fmt"
 	dl "github.com/Deep-Logger"
 	"github.com/Deep-Logger/event"
 	dlhandlers "github.com/Deep-Logger/handlers"
@@ -37,12 +38,22 @@ func main() {
 func setupApplication(conf *config.Config) {
 	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
 	setupDBAccessModule(conf)
-	mainInpHandler.LogEvent(event.New(`DB Access Module succesfully configured.`))
+	mainInpHandler.LogEvent(event.New(`DB Access Module succesfully configured. Connection to DB established.`))
 }
 
 func setupDBAccessModule(conf *config.Config) {
 	dbAccessModule = dbaccessor.NewDBAccessModule()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
+	err := dbAccessModule.Connect()
+	if err != nil {
+		mainInpHandler.LogEvent(event.New(`Failed to connect to DB. Exiting.`))
+		panic(fmt.Sprintf("Failed to connect to DB. Error: %s", err))
+	}
+	err = dbAccessModule.CheckConnection()
+	if err != nil {
+		mainInpHandler.LogEvent(event.New(`DB connection check is negative. Exiting.`))
+		panic(fmt.Sprintf("Check DB Connection failed with error: %s", err.Error()))
+	}
 }
 
 var mainInpHandler dlhandlers.InputHandler
