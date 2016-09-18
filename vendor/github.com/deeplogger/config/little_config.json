@@ -1,0 +1,9 @@
+{"name": "LALALA",
+	"isOn": true,
+	"inputHandlers": ["ABC", "XYZ"],
+	"outputHandlers": ["WOW", "YYY"],
+	"dispatchRules": [
+		{"input":"ABC", "output": "QQQ", "intersect": false},
+		{"input":"XYZ", "output": "YYY", "intersect": true}
+	]
+}

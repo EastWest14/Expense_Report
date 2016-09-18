@@ -1,0 +1,9 @@
+{"name": "TEST_DISPATCHER",
+	"isOn": false,
+	"inputHandlers": ["AAA", "BBB"],
+	"outputHandlers": ["ZZZ", "YYY"],
+	"dispatchRules": [
+		{"input":"AAA", "output": "ZZZ", "intersect": true},
+		{"input":"BBB", "output": "YYY", "intersect": true}
+	]
+}

@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/Deep-Logger/event"
-	dlhandlers "github.com/Deep-Logger/handlers"
+	dl "github.com/deeplogger"
 	_ "github.com/lib/pq"
 )
 
-var DBAccessorInpHandler dlhandlers.InputHandler
+var DBAccessorInpHandler dl.InputHandler
 
 type DBAccessModule interface {
 	SetDBConfig(*DBConfig)
@@ -21,7 +20,7 @@ func NewDBAccessModule() DBAccessModule {
 	if DBAccessorInpHandler == nil {
 		panic("DBAccessorInpHandler is nil.")
 	}
-	DBAccessorInpHandler.LogEvent(event.New(`Creating new DB Access Module.`))
+	DBAccessorInpHandler.LogMessage(`Creating new DB Access Module.`)
 	return &accessModule{}
 }
 
@@ -41,7 +40,7 @@ type accessModule struct {
 }
 
 func (am *accessModule) SetDBConfig(dConfig *DBConfig) {
-	DBAccessorInpHandler.LogEvent(event.New(`Setting DB config of Access Module.`))
+	DBAccessorInpHandler.LogMessage(`Setting DB config of Access Module.`)
 	am.DbConfig = dConfig
 }
 
@@ -52,24 +51,24 @@ func (am *accessModule) Connect() error {
 	var err error
 	am.db, err = sql.Open("postgres", dbinfo)
 	if err != nil {
-		DBAccessorInpHandler.LogEvent(event.New(`Failed to connect to DB.`))
+		DBAccessorInpHandler.LogMessage(`Failed to connect to DB.`)
 		return err
 	}
-	DBAccessorInpHandler.LogEvent(event.New(`Succesfully connected to DB.`))
+	DBAccessorInpHandler.LogMessage(`Succesfully connected to DB.`)
 	return nil
 }
 
 //Pings the DB to check connection.
 func (am *accessModule) CheckConnection() error {
 	if am.db == nil {
-		DBAccessorInpHandler.LogEvent(event.New(`DB is nil.`))
+		DBAccessorInpHandler.LogMessage(`DB is nil.`)
 		return errors.New("DB is nil")
 	}
 	err := am.db.Ping()
 	if err != nil {
-		DBAccessorInpHandler.LogEvent(event.New(`DB ping fail.`))
+		DBAccessorInpHandler.LogMessage(`DB ping fail.`)
 		return errors.New("Ping error" + err.Error())
 	}
-	DBAccessorInpHandler.LogEvent(event.New(`DB ping succesfull.`))
+	DBAccessorInpHandler.LogMessage(`DB ping succesfull.`)
 	return nil
 }

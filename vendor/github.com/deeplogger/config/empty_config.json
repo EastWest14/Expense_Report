@@ -1,0 +1,8 @@
+{"name": "",
+	"isOn": false,
+	"inputHandlers": [""],
+	"outputHandlers": [""],
+	"dispatchRules": [
+		{"input":"", "output": "", "intersect": false}
+	]
+}

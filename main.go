@@ -5,9 +5,7 @@ import (
 	"Expense_Tracker/dbaccessor"
 	"errors"
 	"fmt"
-	dl "github.com/Deep-Logger"
-	"github.com/Deep-Logger/event"
-	dlhandlers "github.com/Deep-Logger/handlers"
+	dl "github.com/deeplogger"
 	"io/ioutil"
 	"os"
 )
@@ -31,14 +29,14 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-	mainInpHandler.LogEvent(event.New(`Deep Logger succesfully configured.`))
+	mainInpHandler.LogMessage(`Deep Logger succesfully configured.`)
 	setupApplication(config)
 }
 
 func setupApplication(conf *config.Config) {
 	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
 	setupDBAccessModule(conf)
-	mainInpHandler.LogEvent(event.New(`DB Access Module succesfully configured. Connection to DB established.`))
+	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
 }
 
 func setupDBAccessModule(conf *config.Config) {
@@ -46,20 +44,20 @@ func setupDBAccessModule(conf *config.Config) {
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 	err := dbAccessModule.Connect()
 	if err != nil {
-		mainInpHandler.LogEvent(event.New(`Failed to connect to DB. Exiting.`))
+		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
 		panic(fmt.Sprintf("Failed to connect to DB. Error: %s", err))
 	}
 	err = dbAccessModule.CheckConnection()
 	if err != nil {
-		mainInpHandler.LogEvent(event.New(`DB connection check is negative. Exiting.`))
+		mainInpHandler.LogMessage(`DB connection check is negative. Exiting.`)
 		panic(fmt.Sprintf("Check DB Connection failed with error: %s", err.Error()))
 	}
 }
 
-var mainInpHandler dlhandlers.InputHandler
-var dbAccessorInpHandler dlhandlers.InputHandler
+var mainInpHandler dl.InputHandler
+var dbAccessorInpHandler dl.InputHandler
 
-var outHandler dlhandlers.OutputHandler
+var outHandler dl.OutputHandler
 
 func constructDeepLoggerSystem(filepath string) error {
 	file, err := os.Open(filepath)
@@ -70,7 +68,10 @@ func constructDeepLoggerSystem(filepath string) error {
 	if err != nil {
 		return errors.New("Failed reading DeepLogger config: " + err.Error())
 	}
-	inpHandlers, _, outHandlers := dl.ConstructLoggerFromConfig(string(configRaw))
+	inpHandlers, _, outHandlers, err := dl.ConstructLoggerFromConfig(string(configRaw))
+	if err != nil {
+		return err
+	}
 	var ok bool
 	mainInpHandler, ok = inpHandlers[MAIN_INPUT_HANDLER_NAME]
 	if !ok {

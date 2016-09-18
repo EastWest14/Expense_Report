@@ -1,0 +1,9 @@
+{"dispatcher_name": "DISP1",
+	"isOn": true,
+	"inputHandlers": ["AAA", "BBB"],
+	"outputHandlers": ["ZZZ", "YYY"],
+	"dispatchRules": [
+		{"input":"AAA", "output": "ZZZ"},
+		{"input":"BBB", "output": "YYY"}
+	]
+}
