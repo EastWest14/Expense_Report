@@ -2,7 +2,9 @@ package main
 
 import (
 	"Expense_Tracker/config"
+	"Expense_Tracker/controller"
 	"Expense_Tracker/dbaccessor"
+	"Expense_Tracker/service"
 	"errors"
 	"fmt"
 	dl "github.com/deeplogger"
@@ -14,6 +16,8 @@ const (
 	TEMP_PROD_CONFIG_PATH = "./conf_files/prod_config/prod_config.json"
 
 	MAIN_INPUT_HANDLER_NAME        = "Main"
+	SERVICE_INPUT_HANDLER_NAME     = "Service"
+	CONTROLLER_INPUT_HANDLER_NAME  = "Controller"
 	DB_ACCESSOR_INPUT_HANDLER_NAME = "DB_Accessor"
 	OUTPUT_HANDLER_NAME            = "Out"
 )
@@ -29,14 +33,21 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	fmt.Println()
 	mainInpHandler.LogMessage(`Deep Logger succesfully configured.`)
 	setupApplication(config)
+	fmt.Println()
 }
 
 func setupApplication(conf *config.Config) {
 	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
 	setupDBAccessModule(conf)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
+	serv := setupServiceModule()
+	mainInpHandler.LogMessage(`Service Module succesfully configured.`)
+	contr := setupControllerModule()
+	contr.SetService(serv)
+	mainInpHandler.LogMessage(`DB Controller Module succesfully configured.`)
 }
 
 func setupDBAccessModule(conf *config.Config) {
@@ -52,6 +63,15 @@ func setupDBAccessModule(conf *config.Config) {
 		mainInpHandler.LogMessage(`DB connection check is negative. Exiting.`)
 		panic(fmt.Sprintf("Check DB Connection failed with error: %s", err.Error()))
 	}
+}
+
+func setupServiceModule() service.Service {
+	return service.NewService()
+}
+
+func setupControllerModule() controller.Controller {
+	contr := controller.NewController()
+	return contr
 }
 
 var mainInpHandler dl.InputHandler
@@ -77,9 +97,17 @@ func constructDeepLoggerSystem(filepath string) error {
 	if !ok {
 		return errors.New("Main input handler not found")
 	}
+	service.ServInpHandler, ok = inpHandlers[SERVICE_INPUT_HANDLER_NAME]
+	if !ok {
+		return errors.New("Service handler not found")
+	}
 	dbAccessorInpHandler, ok = inpHandlers[DB_ACCESSOR_INPUT_HANDLER_NAME]
 	if !ok {
 		return errors.New("DB Accessor input handler not found")
+	}
+	controller.ContrInpHandler, ok = inpHandlers[CONTROLLER_INPUT_HANDLER_NAME]
+	if !ok {
+		return errors.New("Controller handler not found")
 	}
 	outHandler, ok = outHandlers[OUTPUT_HANDLER_NAME]
 	if !ok {

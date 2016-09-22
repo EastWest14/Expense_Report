@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DBAccessorInpHandler dl.InputHandler
+var DBAccessorInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
 type DBAccessModule interface {
 	SetDBConfig(*DBConfig)
