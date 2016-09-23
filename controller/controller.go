@@ -26,7 +26,8 @@ type controllerModule struct {
 
 //Control is transfered from main to Controller. Application begins operating.
 func (c *controllerModule) AcceptControl() {
-
+	ContrInpHandler.LogMessage(`Controller accepts control. Normal operation begins.`)
+	c.waitForCommandFromServiceM()
 }
 
 func (c *controllerModule) SetService(serv service.Service) {
@@ -39,6 +40,11 @@ func (c *controllerModule) SetDAL(dal dbaccessor.DBAccess) {
 	ContrInpHandler.LogMessage(`DAL link set.`)
 }
 
-func (c *controllerModule) waitForCommand() {
+func (c *controllerModule) waitForCommandFromServiceM() {
+	ContrInpHandler.LogMessage(`Waiting for command from Service Module.`)
+	c.serv.WaitForCommand(takeInCommand)
+}
 
+func takeInCommand(command *service.Command, err error) {
+	ContrInpHandler.LogMessage(`Taking in command.`)
 }

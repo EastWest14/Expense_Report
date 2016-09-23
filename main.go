@@ -33,11 +33,14 @@ func main() {
 	}
 	fmt.Println()
 	mainInpHandler.LogMessage(`Deep Logger succesfully configured.`)
-	setupApplication(config)
+	contr := setupApplication(config)
+	mainInpHandler.LogMessage(`Transfering control to controller.`)
+	contr.AcceptControl()
+
 	fmt.Println()
 }
 
-func setupApplication(conf *config.Config) {
+func setupApplication(conf *config.Config) controller.Controller {
 	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
 	dalModule := setupDBAccessModule(conf)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
@@ -47,6 +50,7 @@ func setupApplication(conf *config.Config) {
 	contr.SetService(serv)
 	contr.SetDAL(dalModule)
 	mainInpHandler.LogMessage(`Controller Module succesfully configured.`)
+	return contr
 }
 
 func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
