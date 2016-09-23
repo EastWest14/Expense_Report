@@ -10,13 +10,13 @@ import (
 
 var DBAccessorInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
-type DBAccessModule interface {
+type DBAccess interface {
 	SetDBConfig(*DBConfig)
 	Connect() error
 	CheckConnection() error
 }
 
-func NewDBAccessModule() DBAccessModule {
+func NewDBAccessor() DBAccess {
 	if DBAccessorInpHandler == nil {
 		panic("DBAccessorInpHandler is nil.")
 	}

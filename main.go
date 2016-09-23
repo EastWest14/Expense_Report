@@ -22,8 +22,6 @@ const (
 	OUTPUT_HANDLER_NAME            = "Out"
 )
 
-var dbAccessModule dbaccessor.DBAccessModule
-
 func main() {
 	config, err := config.LoadConfigFromFile(TEMP_PROD_CONFIG_PATH)
 	if err != nil {
@@ -41,17 +39,18 @@ func main() {
 
 func setupApplication(conf *config.Config) {
 	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
-	setupDBAccessModule(conf)
+	dalModule := setupDBAccessModule(conf)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
 	serv := setupServiceModule()
 	mainInpHandler.LogMessage(`Service Module succesfully configured.`)
 	contr := setupControllerModule()
 	contr.SetService(serv)
-	mainInpHandler.LogMessage(`DB Controller Module succesfully configured.`)
+	contr.SetDAL(dalModule)
+	mainInpHandler.LogMessage(`Controller Module succesfully configured.`)
 }
 
-func setupDBAccessModule(conf *config.Config) {
-	dbAccessModule = dbaccessor.NewDBAccessModule()
+func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
+	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 	err := dbAccessModule.Connect()
 	if err != nil {
@@ -63,6 +62,7 @@ func setupDBAccessModule(conf *config.Config) {
 		mainInpHandler.LogMessage(`DB connection check is negative. Exiting.`)
 		panic(fmt.Sprintf("Check DB Connection failed with error: %s", err.Error()))
 	}
+	return dbAccessModule
 }
 
 func setupServiceModule() service.Service {
