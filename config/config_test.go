@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestLoadDbConfig(t *testing.T) {
+func TestLoadConfigFromString(t *testing.T) {
 	const (
 		FAKE_USER     = "user"
 		FAKE_PASSWORD = "fake_password"

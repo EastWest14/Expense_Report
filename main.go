@@ -36,12 +36,10 @@ func main() {
 	contr := setupApplication(config)
 	mainInpHandler.LogMessage(`Transfering control to controller.`)
 	contr.AcceptControl()
-
 	fmt.Println()
 }
 
 func setupApplication(conf *config.Config) controller.Controller {
-	dbaccessor.DBAccessorInpHandler = dbAccessorInpHandler
 	dalModule := setupDBAccessModule(conf)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
 	serv := setupServiceModule()
@@ -56,7 +54,7 @@ func setupApplication(conf *config.Config) controller.Controller {
 func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
 	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
-	err := dbAccessModule.Connect()
+	err := dbAccessModule.Connect("postgres")
 	if err != nil {
 		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
 		panic(fmt.Sprintf("Failed to connect to DB. Error: %s", err))
@@ -79,7 +77,6 @@ func setupControllerModule() controller.Controller {
 }
 
 var mainInpHandler dl.InputHandler
-var dbAccessorInpHandler dl.InputHandler
 
 var outHandler dl.OutputHandler
 
@@ -105,7 +102,7 @@ func constructDeepLoggerSystem(filepath string) error {
 	if !ok {
 		return errors.New("Service handler not found")
 	}
-	dbAccessorInpHandler, ok = inpHandlers[DB_ACCESSOR_INPUT_HANDLER_NAME]
+	dbaccessor.DBAccessorInpHandler, ok = inpHandlers[DB_ACCESSOR_INPUT_HANDLER_NAME]
 	if !ok {
 		return errors.New("DB Accessor input handler not found")
 	}

@@ -1,8 +1,24 @@
 package dbaccessor
 
 import (
-	_ "testing"
+	_ "gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"testing"
 )
+
+func TestConnect(t *testing.T) {
+	dbAccessor := &accessModule{}
+	dbAccessor.DbConfig = &DBConfig{DBUser: "mock_user", DBPassword: "mock_password", DBName: "mock_name"}
+	err := dbAccessor.Connect("sqlmock")
+	if err != nil {
+		t.Error(err.Error())
+	}
+	dbAccessor.db.Close()
+
+	err = dbAccessor.Connect("Invalid_driver")
+	if err == nil {
+		t.Error("Connection should have failed, but didn't.")
+	}
+}
 
 /*
 func TestCheckConnection(t *testing.T) {

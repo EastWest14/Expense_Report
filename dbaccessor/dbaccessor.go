@@ -12,14 +12,11 @@ var DBAccessorInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
 type DBAccess interface {
 	SetDBConfig(*DBConfig)
-	Connect() error
+	Connect(string) error
 	CheckConnection() error
 }
 
 func NewDBAccessor() DBAccess {
-	if DBAccessorInpHandler == nil {
-		panic("DBAccessorInpHandler is nil.")
-	}
 	DBAccessorInpHandler.LogMessage(`Creating new DB Access Module.`)
 	return &accessModule{}
 }
@@ -45,11 +42,11 @@ func (am *accessModule) SetDBConfig(dConfig *DBConfig) {
 }
 
 //Connect to the DB using config.
-func (am *accessModule) Connect() error {
+func (am *accessModule) Connect(driver string) error {
 	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 		am.DbConfig.DBUser, am.DbConfig.DBPassword, am.DbConfig.DBName)
 	var err error
-	am.db, err = sql.Open("postgres", dbinfo)
+	am.db, err = sql.Open(driver, dbinfo)
 	if err != nil {
 		DBAccessorInpHandler.LogMessage(`Failed to connect to DB.`)
 		return err
