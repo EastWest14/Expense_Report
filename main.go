@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	dl "github.com/deeplogger"
-	"io/ioutil"
 	"os"
 )
 
@@ -54,17 +53,24 @@ func setupApplication(conf *config.Config) controller.Controller {
 func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
 	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
+	if err := verifyDBConnection(dbAccessModule); err != nil {
+		panic(err.Error())
+	}
+	return dbAccessModule
+}
+
+func verifyDBConnection(dbAccessModule dbaccessor.DBAccess) error {
 	err := dbAccessModule.Connect("postgres")
 	if err != nil {
 		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
-		panic(fmt.Sprintf("Failed to connect to DB. Error: %s", err))
+		return errors.New("Failed to connect to DB. Error: " + err.Error())
 	}
 	err = dbAccessModule.CheckConnection()
 	if err != nil {
 		mainInpHandler.LogMessage(`DB connection check is negative. Exiting.`)
-		panic(fmt.Sprintf("Check DB Connection failed with error: %s", err.Error()))
+		return errors.New("Check DB Connection failed with error: " + err.Error())
 	}
-	return dbAccessModule
+	return nil
 }
 
 func setupServiceModule() service.Service {
@@ -72,24 +78,15 @@ func setupServiceModule() service.Service {
 }
 
 func setupControllerModule() controller.Controller {
-	contr := controller.NewController()
-	return contr
+	return controller.NewController()
 }
 
-var mainInpHandler dl.InputHandler
+var mainInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
 var outHandler dl.OutputHandler
 
 func constructDeepLoggerSystem(filepath string) error {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return errors.New("Failed opening DeepLogger config: " + err.Error())
-	}
-	configRaw, err := ioutil.ReadAll(file)
-	if err != nil {
-		return errors.New("Failed reading DeepLogger config: " + err.Error())
-	}
-	inpHandlers, _, outHandlers, err := dl.ConstructLoggerFromConfig(string(configRaw))
+	inpHandlers, _, outHandlers, err := dl.ConstructLoggerFromFilepath(filepath)
 	if err != nil {
 		return err
 	}

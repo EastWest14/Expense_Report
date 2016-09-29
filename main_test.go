@@ -4,6 +4,7 @@ import (
 	"Expense_Tracker/controller"
 	"Expense_Tracker/dbaccessor"
 	"Expense_Tracker/service"
+	"errors"
 	"testing"
 )
 
@@ -28,5 +29,54 @@ func TestConstructDeepLoggerSystem(t *testing.T) {
 	}
 	if service.ServInpHandler == nil {
 		t.Error("Service input handler not set.")
+	}
+}
+
+type mockDBAccess struct {
+	connectError         error
+	checkConnectionError error
+}
+
+func (m *mockDBAccess) SetDBConfig(dbConf *dbaccessor.DBConfig) {
+	return
+}
+
+func (m *mockDBAccess) Connect(driver string) error {
+	return m.connectError
+}
+
+func (m *mockDBAccess) CheckConnection() error {
+	return m.checkConnectionError
+}
+
+func TestVerifyDBConnection(t *testing.T) {
+	mockAccess := &mockDBAccess{connectError: nil, checkConnectionError: nil}
+	err := verifyDBConnection(mockAccess)
+	if err != nil {
+		t.Errorf("Expected no error, got: %s", err.Error())
+	}
+	mockAccess = &mockDBAccess{connectError: errors.New(""), checkConnectionError: nil}
+	err = verifyDBConnection(mockAccess)
+	if err == nil {
+		t.Errorf("Expected error connecting, got none")
+	}
+	mockAccess = &mockDBAccess{connectError: nil, checkConnectionError: errors.New("")}
+	err = verifyDBConnection(mockAccess)
+	if err == nil {
+		t.Errorf("Expected error pinging, got none")
+	}
+}
+
+func TestSetupServiceModule(t *testing.T) {
+	servM := setupServiceModule()
+	if servM == nil {
+		t.Error("Failed to setup service module")
+	}
+}
+
+func TestSetupControllerModule(t *testing.T) {
+	contM := setupControllerModule()
+	if contM == nil {
+		t.Error("Failed to setup controller module")
 	}
 }
