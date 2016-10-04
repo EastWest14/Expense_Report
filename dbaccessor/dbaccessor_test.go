@@ -6,7 +6,7 @@ import (
 )
 
 func TestConnect(t *testing.T) {
-	dbAccessor := &accessModule{}
+	dbAccessor := &AccessModule{}
 	dbAccessor.DbConfig = &DBConfig{DBUser: "mock_user", DBPassword: "mock_password", DBName: "mock_name"}
 	err := dbAccessor.Connect("sqlmock")
 	if err != nil {
@@ -21,7 +21,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestCheckConnection(t *testing.T) {
-	am := &accessModule{}
+	am := &AccessModule{}
 	db, _, err := sqlmock.New()
 	if err != nil {
 		t.Fatal("Failed to connect to sqlmock")
@@ -71,7 +71,7 @@ func TestNewDBAccessor(t *testing.T) {
 }
 
 func TestSetDBConfig(t *testing.T) {
-	am := &accessModule{}
+	am := &AccessModule{}
 	dConf := &DBConfig{DBUser: "mock_user", DBPassword: "mock_password", DBName: "mock_name"}
 	am.SetDBConfig(dConf)
 	if am.DbConfig == nil {

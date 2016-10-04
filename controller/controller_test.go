@@ -1,10 +1,17 @@
 package controller
 
 import (
-	"Expense_Tracker/dbaccessor"
+	_ "Expense_Tracker/dbaccessor"
 	"Expense_Tracker/service"
 	"testing"
 )
+
+type mockDbAccessor struct {
+}
+
+func newMockDbAccessor() *mockDbAccessor {
+	return &mockDbAccessor{}
+}
 
 func TestNewController(t *testing.T) {
 	contr := NewController()
@@ -15,7 +22,7 @@ func TestNewController(t *testing.T) {
 
 func TestSetDAL(t *testing.T) {
 	contr := controllerModule{}
-	dal := dbaccessor.NewDBAccessor()
+	dal := newMockDbAccessor()
 	contr.SetDAL(dal)
 	if contr.dal == nil {
 		t.Error("Failed to set DAL reference")

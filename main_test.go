@@ -5,6 +5,7 @@ import (
 	"Expense_Tracker/dbaccessor"
 	"Expense_Tracker/service"
 	"errors"
+	dl "github.com/deeplogger"
 	"testing"
 )
 
@@ -50,6 +51,8 @@ func (m *mockDBAccess) CheckConnection() error {
 }
 
 func TestVerifyDBConnection(t *testing.T) {
+	disableDLLogging()
+
 	mockAccess := &mockDBAccess{connectError: nil, checkConnectionError: nil}
 	err := verifyDBConnection(mockAccess)
 	if err != nil {
@@ -75,8 +78,17 @@ func TestSetupServiceModule(t *testing.T) {
 }
 
 func TestSetupControllerModule(t *testing.T) {
+	disableDLLogging()
+
 	contM := setupControllerModule()
 	if contM == nil {
 		t.Error("Failed to setup controller module")
 	}
+}
+
+func disableDLLogging() {
+	mainInpHandler = dl.NewBlankInputHandler()
+	service.ServInpHandler = dl.NewBlankInputHandler()
+	dbaccessor.DBAccessorInpHandler = dl.NewBlankInputHandler()
+	controller.ContrInpHandler = dl.NewBlankInputHandler()
 }

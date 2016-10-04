@@ -1,17 +1,20 @@
 package controller
 
 import (
-	"Expense_Tracker/dbaccessor"
+	_ "Expense_Tracker/dbaccessor"
 	"Expense_Tracker/service"
 	dl "github.com/deeplogger"
 )
 
 var ContrInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
+type DBAccess interface {
+}
+
 type Controller interface {
 	AcceptControl()
 	SetService(service.Service)
-	SetDAL(dbaccessor.DBAccess)
+	SetDAL(DBAccess)
 }
 
 func NewController() Controller {
@@ -21,7 +24,7 @@ func NewController() Controller {
 
 type controllerModule struct {
 	serv service.Service
-	dal  dbaccessor.DBAccess
+	dal  DBAccess
 }
 
 //Control is transfered from main to Controller. Application begins operating.
@@ -35,7 +38,7 @@ func (c *controllerModule) SetService(serv service.Service) {
 	ContrInpHandler.LogMessage(`Service link set.`)
 }
 
-func (c *controllerModule) SetDAL(dal dbaccessor.DBAccess) {
+func (c *controllerModule) SetDAL(dal DBAccess) {
 	c.dal = dal
 	ContrInpHandler.LogMessage(`DAL link set.`)
 }

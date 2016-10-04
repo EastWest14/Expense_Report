@@ -50,7 +50,7 @@ func setupApplication(conf *config.Config) controller.Controller {
 	return contr
 }
 
-func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
+func setupDBAccessModule(conf *config.Config) dbAccess {
 	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 	if err := verifyDBConnection(dbAccessModule); err != nil {
@@ -59,7 +59,7 @@ func setupDBAccessModule(conf *config.Config) dbaccessor.DBAccess {
 	return dbAccessModule
 }
 
-func verifyDBConnection(dbAccessModule dbaccessor.DBAccess) error {
+func verifyDBConnection(dbAccessModule dbAccess) error {
 	err := dbAccessModule.Connect("postgres")
 	if err != nil {
 		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
@@ -113,4 +113,9 @@ func constructDeepLoggerSystem(filepath string) error {
 	}
 	outHandler.SetOutputWriter(os.Stdout)
 	return nil
+}
+
+type dbAccess interface {
+	Connect(driver string) error
+	CheckConnection() error
 }

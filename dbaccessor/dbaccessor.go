@@ -10,15 +10,9 @@ import (
 
 var DBAccessorInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
-type DBAccess interface {
-	SetDBConfig(*DBConfig)
-	Connect(string) error
-	CheckConnection() error
-}
-
-func NewDBAccessor() DBAccess {
+func NewDBAccessor() *AccessModule {
 	DBAccessorInpHandler.LogMessage(`Creating new DB Access Module.`)
-	return &accessModule{}
+	return &AccessModule{}
 }
 
 type DBConfig struct {
@@ -31,18 +25,18 @@ func NewDBConfig(dbuser, dbpassword, dbname string) *DBConfig {
 	return &DBConfig{DBUser: dbuser, DBPassword: dbpassword, DBName: dbname}
 }
 
-type accessModule struct {
+type AccessModule struct {
 	DbConfig *DBConfig
 	db       *sql.DB
 }
 
-func (am *accessModule) SetDBConfig(dConfig *DBConfig) {
+func (am *AccessModule) SetDBConfig(dConfig *DBConfig) {
 	DBAccessorInpHandler.LogMessage(`Setting DB config of Access Module.`)
 	am.DbConfig = dConfig
 }
 
 //Connect to the DB using config.
-func (am *accessModule) Connect(driver string) error {
+func (am *AccessModule) Connect(driver string) error {
 	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable",
 		am.DbConfig.DBUser, am.DbConfig.DBPassword, am.DbConfig.DBName)
 	var err error
@@ -56,7 +50,7 @@ func (am *accessModule) Connect(driver string) error {
 }
 
 //Pings the DB to check connection.
-func (am *accessModule) CheckConnection() error {
+func (am *AccessModule) CheckConnection() error {
 	if am.db == nil {
 		DBAccessorInpHandler.LogMessage(`DB is nil.`)
 		return errors.New("DB is nil")
