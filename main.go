@@ -73,7 +73,7 @@ func verifyDBConnection(dbAccessModule dbAccess) error {
 	return nil
 }
 
-func setupServiceModule() service.Service {
+func setupServiceModule() Service {
 	return service.NewService()
 }
 
@@ -118,4 +118,8 @@ func constructDeepLoggerSystem(filepath string) error {
 type dbAccess interface {
 	Connect(driver string) error
 	CheckConnection() error
+}
+
+type Service interface {
+	WaitForCommand(func(c *service.Command, err error))
 }

@@ -11,9 +11,13 @@ var ContrInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 type DBAccess interface {
 }
 
+type Service interface {
+	WaitForCommand(func(c *service.Command, err error))
+}
+
 type Controller interface {
 	AcceptControl()
-	SetService(service.Service)
+	SetService(Service)
 	SetDAL(DBAccess)
 }
 
@@ -23,7 +27,7 @@ func NewController() Controller {
 }
 
 type controllerModule struct {
-	serv service.Service
+	serv Service
 	dal  DBAccess
 }
 
@@ -33,7 +37,7 @@ func (c *controllerModule) AcceptControl() {
 	c.waitForCommandFromServiceM()
 }
 
-func (c *controllerModule) SetService(serv service.Service) {
+func (c *controllerModule) SetService(serv Service) {
 	c.serv = serv
 	ContrInpHandler.LogMessage(`Service link set.`)
 }

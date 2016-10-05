@@ -6,19 +6,15 @@ import (
 
 var ServInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
-type Service interface {
-	WaitForCommand(func(c *Command, err error))
-}
-
-func NewService() Service {
+func NewService() *ServiceModule {
 	ServInpHandler.LogMessage(`Initializing a Service Module.`)
-	return &serviceModule{}
+	return &ServiceModule{}
 }
 
-type serviceModule struct {
+type ServiceModule struct {
 }
 
-func (sm *serviceModule) WaitForCommand(commandOutputter func(c *Command, err error)) {
+func (sm *ServiceModule) WaitForCommand(commandOutputter func(c *Command, err error)) {
 	ServInpHandler.LogMessage(`Waiting for command.`)
 	commandOutputter(&Command{}, nil)
 }
