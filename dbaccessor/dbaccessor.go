@@ -8,12 +8,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+//Setting up logging input point
 var DBAccessorInpHandler dl.InputHandler = dl.NewBlankInputHandler()
 
-func NewDBAccessor() *AccessModule {
-	DBAccessorInpHandler.LogMessage(`Creating new DB Access Module.`)
-	return &AccessModule{}
-}
+//**************** DB Config ****************
 
 type DBConfig struct {
 	DBUser     string
@@ -25,15 +23,24 @@ func NewDBConfig(dbuser, dbpassword, dbname string) *DBConfig {
 	return &DBConfig{DBUser: dbuser, DBPassword: dbpassword, DBName: dbname}
 }
 
+//**************** DB Module Setup ****************
+
 type AccessModule struct {
 	DbConfig *DBConfig
 	db       *sql.DB
+}
+
+func NewDBAccessor() *AccessModule {
+	DBAccessorInpHandler.LogMessage(`Creating new DB Access Module.`)
+	return &AccessModule{}
 }
 
 func (am *AccessModule) SetDBConfig(dConfig *DBConfig) {
 	DBAccessorInpHandler.LogMessage(`Setting DB config of Access Module.`)
 	am.DbConfig = dConfig
 }
+
+//**************** DB Accessing ****************
 
 //Connect to the DB using config.
 func (am *AccessModule) Connect(driver string) error {

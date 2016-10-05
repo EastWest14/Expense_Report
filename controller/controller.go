@@ -6,7 +6,15 @@ import (
 	dl "github.com/deeplogger"
 )
 
+//Setting up logging input point
 var ContrInpHandler dl.InputHandler = dl.NewBlankInputHandler()
+
+//**************** Controller Module Setup ****************
+
+type ControllerModule struct {
+	Serv Service
+	Dal  DBAccess
+}
 
 type DBAccess interface {
 }
@@ -18,11 +26,6 @@ type Service interface {
 func NewController() *ControllerModule {
 	ContrInpHandler.LogMessage(`Initializing Controller.`)
 	return &ControllerModule{}
-}
-
-type ControllerModule struct {
-	Serv Service
-	Dal  DBAccess
 }
 
 //Control is transfered from main to Controller. Application begins operating.
@@ -40,6 +43,8 @@ func (c *ControllerModule) SetDAL(dal DBAccess) {
 	c.Dal = dal
 	ContrInpHandler.LogMessage(`DAL link set.`)
 }
+
+//**************** Command Handling ****************
 
 func (c *ControllerModule) waitForCommandFromServiceM() {
 	ContrInpHandler.LogMessage(`Waiting for command from Service Module.`)

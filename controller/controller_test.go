@@ -6,12 +6,16 @@ import (
 	"testing"
 )
 
+//**************** Mock Structures ****************
+
 type mockDbAccessor struct {
 }
 
 func newMockDbAccessor() *mockDbAccessor {
 	return &mockDbAccessor{}
 }
+
+//**************** Test Controller Module Setup ****************
 
 func TestNewController(t *testing.T) {
 	contr := NewController()
@@ -37,6 +41,8 @@ func TestSetService(t *testing.T) {
 		t.Error("Failed to set Service reference")
 	}
 }
+
+//**************** Test Command Handling ****************
 
 func TestConnectToComponents(t *testing.T) {
 

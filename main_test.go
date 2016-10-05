@@ -11,9 +11,7 @@ import (
 
 const DL_CONFIG_PATH = "./conf_files/deep_logger_config/production_dl_config.json"
 
-func TestSetupApplication(t *testing.T) {
-
-}
+//**************** Test Deep Logger Setup ****************
 
 func TestConstructDeepLoggerSystem(t *testing.T) {
 	controller.ContrInpHandler = nil
@@ -32,6 +30,14 @@ func TestConstructDeepLoggerSystem(t *testing.T) {
 		t.Error("Service input handler not set.")
 	}
 }
+
+//**************** Test Setup Full Application ****************
+
+func TestSetupApplication(t *testing.T) {
+
+}
+
+//**************** Test Setup Database Module ****************
 
 type mockDBAccess struct {
 	connectError         error
@@ -70,12 +76,16 @@ func TestVerifyDBConnection(t *testing.T) {
 	}
 }
 
+//**************** Test Setup Service Module ****************
+
 func TestSetupServiceModule(t *testing.T) {
 	servM := setupServiceModule()
 	if servM == nil {
 		t.Error("Failed to setup service module")
 	}
 }
+
+//**************** Test Setup Controller ****************
 
 func TestSetupControllerModule(t *testing.T) {
 	disableDLLogging()
@@ -85,6 +95,8 @@ func TestSetupControllerModule(t *testing.T) {
 		t.Error("Failed to setup controller module")
 	}
 }
+
+//**************** Test Utilities ****************
 
 func disableDLLogging() {
 	mainInpHandler = dl.NewBlankInputHandler()
