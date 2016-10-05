@@ -38,7 +38,7 @@ func main() {
 	fmt.Println()
 }
 
-func setupApplication(conf *config.Config) controller.Controller {
+func setupApplication(conf *config.Config) *controller.ControllerModule {
 	dalModule := setupDBAccessModule(conf)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
 	serv := setupServiceModule()
@@ -50,7 +50,7 @@ func setupApplication(conf *config.Config) controller.Controller {
 	return contr
 }
 
-func setupDBAccessModule(conf *config.Config) dbAccess {
+func setupDBAccessModule(conf *config.Config) DBAccess {
 	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 	if err := verifyDBConnection(dbAccessModule); err != nil {
@@ -59,7 +59,7 @@ func setupDBAccessModule(conf *config.Config) dbAccess {
 	return dbAccessModule
 }
 
-func verifyDBConnection(dbAccessModule dbAccess) error {
+func verifyDBConnection(dbAccessModule DBAccess) error {
 	err := dbAccessModule.Connect("postgres")
 	if err != nil {
 		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
@@ -77,7 +77,7 @@ func setupServiceModule() Service {
 	return service.NewService()
 }
 
-func setupControllerModule() controller.Controller {
+func setupControllerModule() *controller.ControllerModule {
 	return controller.NewController()
 }
 
@@ -115,7 +115,7 @@ func constructDeepLoggerSystem(filepath string) error {
 	return nil
 }
 
-type dbAccess interface {
+type DBAccess interface {
 	Connect(driver string) error
 	CheckConnection() error
 }

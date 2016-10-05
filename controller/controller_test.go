@@ -21,19 +21,19 @@ func TestNewController(t *testing.T) {
 }
 
 func TestSetDAL(t *testing.T) {
-	contr := controllerModule{}
+	contr := ControllerModule{}
 	dal := newMockDbAccessor()
 	contr.SetDAL(dal)
-	if contr.dal == nil {
+	if contr.Dal == nil {
 		t.Error("Failed to set DAL reference")
 	}
 }
 
 func TestSetService(t *testing.T) {
-	contr := controllerModule{}
+	contr := ControllerModule{}
 	serv := service.NewService()
 	contr.SetService(serv)
-	if contr.serv == nil {
+	if contr.Serv == nil {
 		t.Error("Failed to set Service reference")
 	}
 }

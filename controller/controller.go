@@ -15,41 +15,35 @@ type Service interface {
 	WaitForCommand(func(c *service.Command, err error))
 }
 
-type Controller interface {
-	AcceptControl()
-	SetService(Service)
-	SetDAL(DBAccess)
-}
-
-func NewController() Controller {
+func NewController() *ControllerModule {
 	ContrInpHandler.LogMessage(`Initializing Controller.`)
-	return &controllerModule{}
+	return &ControllerModule{}
 }
 
-type controllerModule struct {
-	serv Service
-	dal  DBAccess
+type ControllerModule struct {
+	Serv Service
+	Dal  DBAccess
 }
 
 //Control is transfered from main to Controller. Application begins operating.
-func (c *controllerModule) AcceptControl() {
+func (c *ControllerModule) AcceptControl() {
 	ContrInpHandler.LogMessage(`Controller accepts control. Normal operation begins.`)
 	c.waitForCommandFromServiceM()
 }
 
-func (c *controllerModule) SetService(serv Service) {
-	c.serv = serv
+func (c *ControllerModule) SetService(serv Service) {
+	c.Serv = serv
 	ContrInpHandler.LogMessage(`Service link set.`)
 }
 
-func (c *controllerModule) SetDAL(dal DBAccess) {
-	c.dal = dal
+func (c *ControllerModule) SetDAL(dal DBAccess) {
+	c.Dal = dal
 	ContrInpHandler.LogMessage(`DAL link set.`)
 }
 
-func (c *controllerModule) waitForCommandFromServiceM() {
+func (c *ControllerModule) waitForCommandFromServiceM() {
 	ContrInpHandler.LogMessage(`Waiting for command from Service Module.`)
-	c.serv.WaitForCommand(takeInCommand)
+	c.Serv.WaitForCommand(takeInCommand)
 }
 
 func takeInCommand(command *service.Command, err error) {
