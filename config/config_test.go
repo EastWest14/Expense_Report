@@ -7,31 +7,34 @@ import (
 
 func TestLoadConfigFromString(t *testing.T) {
 	const (
-		FAKE_USER     = "user"
-		FAKE_PASSWORD = "fake_password"
-		FAKE_DB_NAME  = "name"
-		FAKE_DL_PATH  = "dl_path"
+		MOCK_USER     = "user"
+		MOCK_PASSWORD = "fake_password"
+		MOCK_DB_NAME  = "name"
+		MOCK_DL_PATH  = "dl_path"
 
-		configTemplate = `{"DB_USER": "%s", "DB_PASSWORD": "%s", "DB_NAME": "%s", "DEEP_LOGGER_PATH": "%s"}`
+		configTemplate = `{"DB_USER": "%s", "DB_PASSWORD": "%s", "DB_NAME": "%s", "DEEP_LOGGER_PATH": "%s", "ASSERTS_ARE_FATAL": true}`
 		brokenConfig1  = ""
 		brokenConfig2  = `{"DB_USER": "a"}`
 	)
-	configString := fmt.Sprintf(configTemplate, FAKE_USER, FAKE_PASSWORD, FAKE_DB_NAME, FAKE_DL_PATH)
+	configString := fmt.Sprintf(configTemplate, MOCK_USER, MOCK_PASSWORD, MOCK_DB_NAME, MOCK_DL_PATH)
 	conf, err := LoadConfigFromString(configString)
 	if err != nil {
 		t.Errorf("Error loading config: %s", err.Error())
 	}
-	if conf.DBUser != FAKE_USER {
-		t.Errorf("Config user loaded incorrectly. Expected \"%s\", got: \"%s\"", FAKE_USER, conf.DBUser)
+	if conf.DBUser != MOCK_USER {
+		t.Errorf("Config user loaded incorrectly. Expected \"%s\", got: \"%s\"", MOCK_USER, conf.DBUser)
 	}
-	if conf.DBPassword != FAKE_PASSWORD {
-		t.Errorf("Config password loaded incorrectly. Expected \"%s\", got: \"%s\"", FAKE_PASSWORD, conf.DBPassword)
+	if conf.DBPassword != MOCK_PASSWORD {
+		t.Errorf("Config password loaded incorrectly. Expected \"%s\", got: \"%s\"", MOCK_PASSWORD, conf.DBPassword)
 	}
-	if conf.DBName != FAKE_DB_NAME {
-		t.Errorf("Config db name loaded incorrectly. Expected \"%s\", got: \"%s\"", FAKE_DB_NAME, conf.DBName)
+	if conf.DBName != MOCK_DB_NAME {
+		t.Errorf("Config db name loaded incorrectly. Expected \"%s\", got: \"%s\"", MOCK_DB_NAME, conf.DBName)
 	}
-	if conf.DeepLoggerPath != FAKE_DL_PATH {
-		t.Errorf("Config deep logger path loaded incorrectly. Expected \"%s\", got: \"%s\"", FAKE_DL_PATH, conf.DeepLoggerPath)
+	if conf.DeepLoggerPath != MOCK_DL_PATH {
+		t.Errorf("Config deep logger path loaded incorrectly. Expected \"%s\", got: \"%s\"", MOCK_DL_PATH, conf.DeepLoggerPath)
+	}
+	if !conf.AssertsAreFatal {
+		t.Errorf("Config deep logger path loaded incorrectly. Expected ASSERTS_ARE_FATAL to be on")
 	}
 
 	_, err = LoadConfigFromString(brokenConfig1)

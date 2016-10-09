@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	dl "github.com/deeplogger"
+	"github.com/gAssert"
 	"os"
 )
 
@@ -30,6 +31,16 @@ func main() {
 	mainInpHandler.LogMessage(`Transfering control to controller.`)
 	contr.AcceptControl()
 	fmt.Println()
+}
+
+//**************** gAssert Configuration ****************
+
+func configureAsserts(conf *config.Config) {
+	if conf.AssertsAreFatal {
+		gAssert.SetAssertsFatal(true)
+		return
+	}
+	gAssert.SetAssertsFatal(false)
 }
 
 //**************** Deep Logger Setup ****************
@@ -82,10 +93,15 @@ func constructDeepLoggerSystem(filepath string) error {
 
 func setupApplication(conf *config.Config) *controller.ControllerModule {
 	dalModule := setupDBAccessModule(conf)
+	gAssert.AssertHard(dalModule != nil, `Failed to initialize database access module.`)
 	mainInpHandler.LogMessage(`DB Access Module succesfully configured. Connection to DB established.`)
+
 	serv := setupServiceModule()
+	gAssert.AssertHard(serv != nil, `Failed to initialize service module.`)
 	mainInpHandler.LogMessage(`Service Module succesfully configured.`)
+
 	contr := setupControllerModule()
+	gAssert.AssertHard(contr != nil, `Failed to initialize controller module.`)
 	contr.SetService(serv)
 	contr.SetDAL(dalModule)
 	mainInpHandler.LogMessage(`Controller Module succesfully configured.`)
@@ -94,12 +110,7 @@ func setupApplication(conf *config.Config) *controller.ControllerModule {
 
 //**************** Setting up Database Module ****************
 
-type DBAccess interface {
-	Connect(driver string) error
-	CheckConnection() error
-}
-
-func setupDBAccessModule(conf *config.Config) DBAccess {
+func setupDBAccessModule(conf *config.Config) *dbaccessor.AccessModule {
 	dbAccessModule := dbaccessor.NewDBAccessor()
 	dbAccessModule.SetDBConfig(dbaccessor.NewDBConfig(conf.DBUser, conf.DBPassword, conf.DBName))
 	if err := verifyDBConnection(dbAccessModule); err != nil {
@@ -108,7 +119,7 @@ func setupDBAccessModule(conf *config.Config) DBAccess {
 	return dbAccessModule
 }
 
-func verifyDBConnection(dbAccessModule DBAccess) error {
+func verifyDBConnection(dbAccessModule *dbaccessor.AccessModule) error {
 	err := dbAccessModule.Connect("postgres")
 	if err != nil {
 		mainInpHandler.LogMessage(`Failed to connect to DB. Exiting.`)
@@ -124,11 +135,7 @@ func verifyDBConnection(dbAccessModule DBAccess) error {
 
 //**************** Setting up Service Module ****************
 
-type Service interface {
-	WaitForCommand(func(c *service.Command, err error))
-}
-
-func setupServiceModule() Service {
+func setupServiceModule() *service.ServiceModule {
 	return service.NewService()
 }
 

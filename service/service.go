@@ -1,6 +1,7 @@
 package service
 
 import (
+	"Expense_Tracker/expense"
 	dl "github.com/deeplogger"
 )
 
@@ -19,10 +20,9 @@ func NewService() *ServiceModule {
 
 //**************** Incomming Command Handling ****************
 
-func (sm *ServiceModule) WaitForCommand(commandOutputter func(c *Command, err error)) {
-	ServInpHandler.LogMessage(`Waiting for command.`)
-	commandOutputter(&Command{}, nil)
-}
+type CommandInputter func(command interface{}, err error)
 
-type Command struct {
+func (sm *ServiceModule) WaitForCommand(commandInput CommandInputter) {
+	ServInpHandler.LogMessage(`Waiting for command.`)
+	commandInput(expense.New(123.5), nil)
 }

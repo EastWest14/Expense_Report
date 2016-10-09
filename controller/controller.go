@@ -4,6 +4,7 @@ import (
 	_ "Expense_Tracker/dbaccessor"
 	"Expense_Tracker/service"
 	dl "github.com/deeplogger"
+	"github.com/gAssert"
 )
 
 //Setting up logging input point
@@ -20,18 +21,12 @@ type DBAccess interface {
 }
 
 type Service interface {
-	WaitForCommand(func(c *service.Command, err error))
+	WaitForCommand(service.CommandInputter)
 }
 
 func NewController() *ControllerModule {
 	ContrInpHandler.LogMessage(`Initializing Controller.`)
 	return &ControllerModule{}
-}
-
-//Control is transfered from main to Controller. Application begins operating.
-func (c *ControllerModule) AcceptControl() {
-	ContrInpHandler.LogMessage(`Controller accepts control. Normal operation begins.`)
-	c.waitForCommandFromServiceM()
 }
 
 func (c *ControllerModule) SetService(serv Service) {
@@ -46,11 +41,22 @@ func (c *ControllerModule) SetDAL(dal DBAccess) {
 
 //**************** Command Handling ****************
 
+//Control is transfered from main to Controller. Application begins operating.
+func (c *ControllerModule) AcceptControl() {
+	gAssert.AssertHard(c.Serv != nil, "Service link of controller not set. Controller cannot accept control.")
+	gAssert.AssertHard(c.Dal != nil, "Database access link of controller not set. Controller cannot accept control.")
+	ContrInpHandler.LogMessage(`Controller accepts control. Normal operation begins.`)
+	c.waitForCommandFromServiceM()
+}
+
 func (c *ControllerModule) waitForCommandFromServiceM() {
 	ContrInpHandler.LogMessage(`Waiting for command from Service Module.`)
 	c.Serv.WaitForCommand(takeInCommand)
 }
 
-func takeInCommand(command *service.Command, err error) {
+//TODO: fill command interface
+
+//takeInCommand is passed to the service module as a variable
+func takeInCommand(command interface{}, err error) {
 	ContrInpHandler.LogMessage(`Taking in command.`)
 }
