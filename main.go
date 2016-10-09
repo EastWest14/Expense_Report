@@ -17,17 +17,18 @@ const (
 )
 
 func main() {
-	config, err := config.LoadConfigFromFile(TEMP_PROD_CONFIG_PATH)
+	configInstance, err := config.LoadConfigFromFile(TEMP_PROD_CONFIG_PATH)
 	if err != nil {
 		panic(err.Error())
 	}
-	err = constructDeepLoggerSystem(config.DeepLoggerPath)
+	configureAsserts(configInstance)
+	err = constructDeepLoggerSystem(configInstance.DeepLoggerPath)
 	if err != nil {
 		panic(err.Error())
 	}
 	fmt.Println()
 	mainInpHandler.LogMessage(`Deep Logger succesfully configured.`)
-	contr := setupApplication(config)
+	contr := setupApplication(configInstance)
 	mainInpHandler.LogMessage(`Transfering control to controller.`)
 	contr.AcceptControl()
 	fmt.Println()
