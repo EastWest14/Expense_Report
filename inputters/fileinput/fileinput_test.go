@@ -24,6 +24,63 @@ func TestNewFileInputter(t *testing.T) {
 
 //**************** Test Loading Raw Data ****************
 
+func TestLoadString(t *testing.T) {
+	//Case setup
+	const (
+		inputEmpty            = ""
+		inputSpace            = " "
+		inputTab              = "\t"
+		inputEmptyLine        = "\n"
+		inputOneLine          = "expense 56.78;"
+		inputLineAndEmptyLine = "expense 56.78;\n"
+		inputOneLineAndSpaces = "  expense 56.78; \t\n"
+		inputTwoLines         = "expense 56.78;\nexpense 10.00"
+		inputTwoLinesAndEmpty = "expense 56.78;\n\n\nexpense 10.00"
+
+		invalidLineNoSemicolon   = "potato"
+		invalidLineJustSemicolon = ";"
+		invalidTwoLinesTogether  = "expense 56.78; expense 56.78"
+		invalidDoubleSemicolon   = "expense 56.78;;"
+	)
+	cases := []struct {
+		inputString   string
+		expectedLines []string
+		expectedError bool
+	}{
+		//Pass cases
+		{inputString: inputEmpty, expectedLines: nil, expectedError: false},
+		{inputString: inputSpace, expectedLines: nil, expectedError: false},
+		{inputString: inputTab, expectedLines: nil, expectedError: false},
+		{inputString: inputEmptyLine, expectedLines: nil, expectedError: false},
+		{inputString: inputOneLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputLineAndEmptyLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOneLineAndSpaces, expectedLines: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputTwoLines, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
+		{inputString: inputTwoLinesAndEmpty, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
+
+		//Fail cases
+		{inputString: invalidLineNoSemicolon, expectedError: true},
+		{inputString: invalidLineJustSemicolon, expectedError: true},
+		{inputString: invalidTwoLinesTogether, expectedError: true},
+		{inputString: invalidDoubleSemicolon, expectedError: true},
+	}
+
+	//Checking line parsing results
+	for i, aCase := range cases {
+		fInputter := NewFileInputter()
+
+		err := fInputter.loadString(aCase.inputString)
+		errorPresent := (err != nil)
+		if errorPresent != aCase.expectedError {
+			t.Errorf("Error in case: %d, error value doesn't match", i)
+		}
+		linesCorrectlyParsed := fInputter.compareQueueAndStrings(aCase.expectedLines)
+		if !linesCorrectlyParsed {
+			t.Errorf("Error in case: %d, parsed lines don't match", i)
+		}
+	}
+}
+
 //**************** Test Line Queue ****************
 
 func TestEnqueue(t *testing.T) {
@@ -100,10 +157,60 @@ func TestDequeue(t *testing.T) {
 
 //**************** Utilities ****************
 
-func (fi *FileInputter) compareQueueAndStrings(elements []string) (equal bool) {
-	return false
+func (fi *FileInputter) compareQueueAndStrings(lines []string) (equal bool) {
+	numLines := len(lines)
+	for i := 0; i < numLines; i++ {
+		dequeuedLine, found := fi.dequeueLine()
+		if !found {
+			//Number of elements unequal
+			return false
+		}
+		if dequeuedLine != lines[i] {
+			//Dequed line not equal to slice line
+			return false
+		}
+	}
+	if _, found := fi.dequeueLine(); found {
+		//Queue has more elements than slice
+		return false
+	}
+	return true
 }
 
 func TestCompareQueueAndStrings(t *testing.T) {
+	cases := []struct {
+		linesToEnqueue   []string
+		linesToCompareTo []string
+		shouldBeEqual    bool
+	}{
+		{linesToEnqueue: nil, linesToCompareTo: nil, shouldBeEqual: true},
+		{linesToEnqueue: []string{""}, linesToCompareTo: []string{""}, shouldBeEqual: true},
+		{linesToEnqueue: []string{"hello"}, linesToCompareTo: []string{"hello"}, shouldBeEqual: true},
+		{linesToEnqueue: []string{"hello", "world"}, linesToCompareTo: []string{"hello", "world"}, shouldBeEqual: true},
+		{linesToEnqueue: nil, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{linesToEnqueue: []string{""}, linesToCompareTo: nil, shouldBeEqual: false},
+		{linesToEnqueue: []string{""}, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{linesToEnqueue: []string{"b"}, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{linesToEnqueue: []string{"hello", "world"}, linesToCompareTo: []string{"hello"}, shouldBeEqual: false},
+		{linesToEnqueue: []string{"hello", "world", "bye"}, linesToCompareTo: []string{"hello", "world"}, shouldBeEqual: false},
+		{linesToEnqueue: []string{"hello", "world", "bye"}, linesToCompareTo: nil, shouldBeEqual: false},
+	}
 
+	for i, aCase := range cases {
+		fInputter := NewFileInputter()
+		for _, aLine := range aCase.linesToEnqueue {
+			fInputter.enqueueLine(aLine)
+		}
+
+		comparatorResult := fInputter.compareQueueAndStrings(aCase.linesToCompareTo)
+		if aCase.shouldBeEqual {
+			if !comparatorResult {
+				t.Errorf("CompareQueueAndStrings should return true, but returns false. Case number: %d", i)
+			}
+		} else {
+			if comparatorResult {
+				t.Errorf("CompareQueueAndStrings should return false, but returns true. Case number: %d", i)
+			}
+		}
+	}
 }
