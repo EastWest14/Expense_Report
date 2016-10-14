@@ -27,20 +27,23 @@ func TestNewFileInputter(t *testing.T) {
 func TestLoadString(t *testing.T) {
 	//Case setup
 	const (
-		inputEmpty            = ""
-		inputSpace            = " "
-		inputTab              = "\t"
-		inputEmptyLine        = "\n"
-		inputOneLine          = "expense 56.78;"
-		inputLineAndEmptyLine = "expense 56.78;\n"
-		inputOneLineAndSpaces = "  expense 56.78; \t\n"
-		inputTwoLines         = "expense 56.78;\nexpense 10.00"
-		inputTwoLinesAndEmpty = "expense 56.78;\n\n\nexpense 10.00"
+		inputEmpty             = ""
+		inputSpace             = " "
+		inputTab               = "\t"
+		inputEmptyLine         = "\n"
+		inputJustSemicolon     = ";"
+		inputOneLine           = "expense 56.78;"
+		inputOneLineInnerSpace = "expense 56.78  \t;"
+		inputOtherText         = "any phrase;"
+		inputLineAndEmptyLine  = "expense 56.78;\n"
+		inputOneLineAndSpaces  = "  expense 56.78; \t\n"
+		inputTwoLines          = "expense 56.78;\nexpense 10.00;"
+		inputTwoLinesAndEmpty  = "expense 56.78;\n\n\nexpense 10.00;"
+		inputTwoLinesTogether  = "expense 56.78; expense 56.78;"
+		inputDoubleSemicolon   = "expense 30;;"
 
-		invalidLineNoSemicolon   = "potato"
-		invalidLineJustSemicolon = ";"
-		invalidTwoLinesTogether  = "expense 56.78; expense 56.78"
-		invalidDoubleSemicolon   = "expense 56.78;;"
+		invalidLineNoSemicolon     = "potato"
+		invalidTwoLinesNoSemicolon = "expense 56.78; no semicolon"
 	)
 	cases := []struct {
 		inputString   string
@@ -52,17 +55,20 @@ func TestLoadString(t *testing.T) {
 		{inputString: inputSpace, expectedLines: nil, expectedError: false},
 		{inputString: inputTab, expectedLines: nil, expectedError: false},
 		{inputString: inputEmptyLine, expectedLines: nil, expectedError: false},
+		{inputString: inputJustSemicolon, expectedLines: nil, expectedError: false},
 		{inputString: inputOneLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOneLineInnerSpace, expectedLines: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOtherText, expectedLines: []string{"any phrase"}, expectedError: false},
 		{inputString: inputLineAndEmptyLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
 		{inputString: inputOneLineAndSpaces, expectedLines: []string{"expense 56.78"}, expectedError: false},
 		{inputString: inputTwoLines, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
 		{inputString: inputTwoLinesAndEmpty, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
+		{inputString: inputTwoLinesTogether, expectedLines: []string{"expense 56.78", "expense 56.78"}, expectedError: false},
+		{inputString: inputDoubleSemicolon, expectedLines: []string{"expense 30"}, expectedError: false},
 
 		//Fail cases
 		{inputString: invalidLineNoSemicolon, expectedError: true},
-		{inputString: invalidLineJustSemicolon, expectedError: true},
-		{inputString: invalidTwoLinesTogether, expectedError: true},
-		{inputString: invalidDoubleSemicolon, expectedError: true},
+		{inputString: invalidTwoLinesNoSemicolon, expectedError: true},
 	}
 
 	//Checking line parsing results
@@ -70,13 +76,19 @@ func TestLoadString(t *testing.T) {
 		fInputter := NewFileInputter()
 
 		err := fInputter.loadString(aCase.inputString)
-		errorPresent := (err != nil)
-		if errorPresent != aCase.expectedError {
-			t.Errorf("Error in case: %d, error value doesn't match", i)
+		if err != nil {
+			if !aCase.expectedError {
+				t.Errorf("Error in case: %d. Expected no error, got: %s", i, err.Error())
+			}
+		}
+		if err == nil {
+			if aCase.expectedError {
+				t.Errorf("Error in case: %d. Expected error, but got none", i)
+			}
 		}
 		linesCorrectlyParsed := fInputter.compareQueueAndStrings(aCase.expectedLines)
 		if !linesCorrectlyParsed {
-			t.Errorf("Error in case: %d, parsed lines don't match", i)
+			t.Errorf("Error in case: %d. Parsed lines don't match. Expected: %v", i, aCase.expectedLines)
 		}
 	}
 }
@@ -152,6 +164,47 @@ func TestDequeue(t *testing.T) {
 	}
 	if dequeuedLine, found := fInputter.dequeueLine(); dequeuedLine != "" || found {
 		t.Errorf("Incorrect dequeue of an empty queue")
+	}
+}
+
+func TestEmptyQueue(t *testing.T) {
+	fInputter := NewFileInputter()
+	queuedLines := []string{"line1", "line2", "line3"}
+	for _, aLine := range queuedLines {
+		fInputter.linesQueue = append(fInputter.linesQueue, aLine)
+	}
+	fInputter.linesQueueInIndex = len(queuedLines)
+
+	fInputter.emptyQueue()
+	if _, found := fInputter.dequeueLine(); found {
+		t.Errorf("Didn't empty the queue")
+	}
+
+	//Test on already empty queue
+	fInputter = NewFileInputter()
+	fInputter.emptyQueue()
+	if !fInputter.queueIsEmpty() {
+		t.Errorf("Error when trying to empty an already empty queue")
+	}
+}
+
+func TestIsEmpty(t *testing.T) {
+	fInputter := NewFileInputter()
+	queuedLines := []string{"line1", "line2", "line3"}
+	for _, aLine := range queuedLines {
+		fInputter.linesQueue = append(fInputter.linesQueue, aLine)
+	}
+	fInputter.linesQueueInIndex = len(queuedLines)
+
+	isEmptyResponse := fInputter.queueIsEmpty()
+	if isEmptyResponse {
+		t.Error("A non-empty queue reported as empty")
+	}
+
+	fInputter = NewFileInputter()
+	isEmptyResponse = fInputter.queueIsEmpty()
+	if !isEmptyResponse {
+		t.Error("An empty queue reported as non-empty")
 	}
 }
 
