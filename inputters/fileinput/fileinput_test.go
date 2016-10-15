@@ -1,6 +1,9 @@
 package fileinput
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -24,6 +27,73 @@ func TestNewFileInputter(t *testing.T) {
 
 //**************** Test Loading Raw Data ****************
 
+func TestLoadFile(t *testing.T) {
+	const MISS_PATH = "./noexistent_file"
+	_, err := os.Open(MISS_PATH)
+	if err == nil {
+		t.Errorf("Setup for test incorrect. File at path %s exists, but shouldn't. Please remove it.", MISS_PATH)
+		return
+	}
+
+	fInputter := NewFileInputter()
+	err = fInputter.LoadFile(MISS_PATH)
+	if err == nil {
+		t.Errorf("loadFiledoesn't return an error while trying to open a nonexistent file at path: %s", MISS_PATH)
+	}
+	if !fInputter.queueIsEmpty() {
+		t.Errorf("Calling LoadFile on a non-existent filepath shouldn't add elements to the queue")
+	}
+
+	//
+	fileContent := []byte("You broke my heart, Fredo;  Fredo runs away ;")
+	tempDir, err := ioutil.TempDir("", "test_directory")
+	if err != nil {
+		t.Errorf("Test setup error. Failed creating temp directory: %s", err.Error())
+	}
+	defer os.RemoveAll(tempDir)
+	fileNoPermission := filepath.Join(tempDir, "test_file_to_load")
+	//LoadFile doesn't have permission to open the file
+	err = ioutil.WriteFile(fileNoPermission, fileContent, 0200)
+	if err != nil {
+		t.Errorf("Test setup error. Failed to write temporary file: %s", err.Error())
+	}
+	err = fInputter.LoadFile(fileNoPermission)
+	if err == nil {
+		t.Error("Expected permission error loading file to string. Got no error")
+	}
+	if !fInputter.queueIsEmpty() {
+		t.Errorf("Calling LoadFile on a file that progran can't access shouldn't add elements to the queue")
+	}
+
+	//
+	fileWithEmptyContent := filepath.Join(tempDir, "test_file_to_load2")
+	err = ioutil.WriteFile(fileWithEmptyContent, []byte(""), 0666)
+	if err != nil {
+		t.Errorf("Test setup error. Failed to write temporary file: %s", err.Error())
+	}
+	err = fInputter.LoadFile(fileWithEmptyContent)
+	if err != nil {
+		t.Errorf("Failed loading file to string: %s", err.Error())
+	}
+	if !fInputter.compareQueueAndStrings(nil) {
+		t.Errorf("LoadFile on an empty file shouldn't add elements to the queue")
+	}
+
+	//
+	fileWithValidContent := filepath.Join(tempDir, "test_file_to_load3")
+	err = ioutil.WriteFile(fileWithValidContent, fileContent, 0666)
+	if err != nil {
+		t.Errorf("Test setup error. Failed to write temporary file: %s", err.Error())
+	}
+	err = fInputter.LoadFile(fileWithValidContent)
+	if err != nil {
+		t.Errorf("Failed loading file to string: %s", err.Error())
+	}
+	if !fInputter.compareQueueAndStrings([]string{"You broke my heart, Fredo", "Fredo runs away"}) {
+		t.Errorf("Expected file to load [%s] and [%s], didn't get the right result", "You broke my heart, Fredo", "Fredo runs away")
+	}
+}
+
 func TestLoadString(t *testing.T) {
 	//Case setup
 	const (
@@ -45,6 +115,13 @@ func TestLoadString(t *testing.T) {
 		invalidLineNoSemicolon     = "potato"
 		invalidTwoLinesNoSemicolon = "expense 56.78; no semicolon"
 	)
+	inputVeryLongLine := []byte{}
+	expectedVeryLongSlice := []string{}
+	for i := 0; i < 10000; i++ {
+		inputVeryLongLine = append(inputVeryLongLine, []byte("potato; ")...)
+		expectedVeryLongSlice = append(expectedVeryLongSlice, "potato")
+	}
+
 	cases := []struct {
 		inputString   string
 		expectedLines []string
@@ -65,6 +142,7 @@ func TestLoadString(t *testing.T) {
 		{inputString: inputTwoLinesAndEmpty, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
 		{inputString: inputTwoLinesTogether, expectedLines: []string{"expense 56.78", "expense 56.78"}, expectedError: false},
 		{inputString: inputDoubleSemicolon, expectedLines: []string{"expense 30"}, expectedError: false},
+		{inputString: string(inputVeryLongLine), expectedLines: expectedVeryLongSlice, expectedError: false},
 
 		//Fail cases
 		{inputString: invalidLineNoSemicolon, expectedError: true},

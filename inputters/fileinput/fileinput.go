@@ -3,6 +3,8 @@ package fileinput
 import (
 	"errors"
 	"github.com/gAssert"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -21,7 +23,15 @@ func NewFileInputter() *FileInputter {
 //**************** Loading Raw Data ****************
 
 func (fi *FileInputter) LoadFile(filepath string) (loadingError error) {
-	return nil
+	file, err := os.Open(filepath)
+	if err != nil {
+		return errors.New("Failed opening file: " + err.Error())
+	}
+	rawContent, err := ioutil.ReadAll(file)
+	if err != nil {
+		return errors.New("Failed reading reading: " + err.Error())
+	}
+	return fi.loadString(string(rawContent))
 }
 
 func (fi *FileInputter) loadString(rawInput string) (parsingError error) {
