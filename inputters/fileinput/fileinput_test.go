@@ -25,6 +25,39 @@ func TestNewFileInputter(t *testing.T) {
 	}
 }
 
+//**************** Extracting Lines ****************
+
+func TestExtractLine(t *testing.T) {
+	fInputter := NewFileInputter()
+	line, found := fInputter.ExtractLine()
+	if found || line != "" {
+		t.Error("Finding elements in a newly initialized empty queue")
+	}
+	lines := []string{"I", "will", "be", "back !"}
+	for _, aLine := range lines {
+		fInputter.enqueueLine(aLine)
+	}
+
+	for i := 0; i < len(lines); i++ {
+		line, found := fInputter.ExtractLine()
+		if !found {
+			t.Errorf("Error in case %d. Expected line to be found, not found", i)
+		}
+		if line != lines[i] {
+			t.Errorf("Error in case %d. Expected %s, got %s", i, lines[i], line)
+		}
+	}
+	line, found = fInputter.ExtractLine()
+	if found || line != "" {
+		t.Error("Finding elements in a queue that is suppose to be empty")
+	}
+	line, found = fInputter.ExtractLine()
+	if found || line != "" {
+		t.Error("Finding elements in a queue that is suppose to be empty on a second attempt")
+	}
+
+}
+
 //**************** Test Loading Raw Data ****************
 
 func TestLoadFile(t *testing.T) {

@@ -29,7 +29,7 @@ func (fi *FileInputter) LoadFile(filepath string) (loadingError error) {
 	}
 	rawContent, err := ioutil.ReadAll(file)
 	if err != nil {
-		return errors.New("Failed reading reading: " + err.Error())
+		return errors.New("Failed reading file: " + err.Error())
 	}
 	return fi.loadString(string(rawContent))
 }
@@ -69,6 +69,12 @@ func (fi *FileInputter) loadString(rawInput string) (parsingError error) {
 		}
 	}
 	return nil
+}
+
+//**************** Extracting Lines ****************
+
+func (fi *FileInputter) ExtractLine() (line string, found bool) {
+	return fi.dequeueLine()
 }
 
 //**************** Managing Line Queue ****************
