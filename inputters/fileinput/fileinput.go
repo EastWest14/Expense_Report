@@ -1,7 +1,7 @@
 //fileinput package processes a text file and breaks it up into
 //semicolon separated string segments. The package provides the first
 //level of parsing and presents the rest of the program with a cleaner
-//input.
+//form of input.
 package fileinput
 
 import (
@@ -28,7 +28,11 @@ func NewFileInputter() *FileInputter {
 
 //**************** Loading Raw Data ****************
 
-//LoadFiles reads a textfile and processes it into segments represented by a string.
+//TODO: LoadFile should dump the queue in case of processing error.
+
+//LoadFiles reads a textfile and processes it into segments represented by strings.
+//Each line should contain 1+ semicolon terminated components or whitespaces only.
+//If a line is not terminated by a semicolon LoadFile will return an error.
 func (fi *FileInputter) LoadFile(filepath string) (loadingError error) {
 	file, err := os.Open(filepath)
 	if err != nil {
