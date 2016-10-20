@@ -14,45 +14,45 @@ func TestNewFileInputter(t *testing.T) {
 	if fInputter == nil {
 		t.Error("failed to initialize file inputter")
 	}
-	if len(fInputter.linesQueue) != 0 {
-		t.Error("Inputter line queue initialized to a non-empty value")
+	if len(fInputter.segmentQueue) != 0 {
+		t.Error("Inputter segment queue initialized to a non-empty value")
 	}
-	if fInputter.linesQueueInIndex != 0 {
+	if fInputter.segmentQueueInIndex != 0 {
 		t.Error("Inputter in index is not 0")
 	}
-	if fInputter.linesQueueOutIndex != 0 {
+	if fInputter.segmentQueueOutIndex != 0 {
 		t.Error("Inputter out index is not 0")
 	}
 }
 
-//**************** Extracting Lines ****************
+//**************** Extracting Segments ****************
 
-func TestExtractLine(t *testing.T) {
+func TestExtractSegments(t *testing.T) {
 	fInputter := NewFileInputter()
-	line, found := fInputter.ExtractLine()
-	if found || line != "" {
+	segment, found := fInputter.ExtractSegment()
+	if found || segment != "" {
 		t.Error("Finding elements in a newly initialized empty queue")
 	}
-	lines := []string{"I", "will", "be", "back !"}
-	for _, aLine := range lines {
-		fInputter.enqueueLine(aLine)
+	segments := []string{"I", "will", "be", "back !"}
+	for _, aSegment := range segments {
+		fInputter.enqueueSegment(aSegment)
 	}
 
-	for i := 0; i < len(lines); i++ {
-		line, found := fInputter.ExtractLine()
+	for i := 0; i < len(segments); i++ {
+		segment, found := fInputter.ExtractSegment()
 		if !found {
-			t.Errorf("Error in case %d. Expected line to be found, not found", i)
+			t.Errorf("Error in case %d. Expected segment to be found, not found", i)
 		}
-		if line != lines[i] {
-			t.Errorf("Error in case %d. Expected %s, got %s", i, lines[i], line)
+		if segment != segments[i] {
+			t.Errorf("Error in case %d. Expected %s, got %s", i, segments[i], segment)
 		}
 	}
-	line, found = fInputter.ExtractLine()
-	if found || line != "" {
+	segment, found = fInputter.ExtractSegment()
+	if found || segment != "" {
 		t.Error("Finding elements in a queue that is suppose to be empty")
 	}
-	line, found = fInputter.ExtractLine()
-	if found || line != "" {
+	segment, found = fInputter.ExtractSegment()
+	if found || segment != "" {
 		t.Error("Finding elements in a queue that is suppose to be empty on a second attempt")
 	}
 
@@ -156,33 +156,33 @@ func TestLoadString(t *testing.T) {
 	}
 
 	cases := []struct {
-		inputString   string
-		expectedLines []string
-		expectedError bool
+		inputString      string
+		expectedSegments []string
+		expectedError    bool
 	}{
 		//Pass cases
-		{inputString: inputEmpty, expectedLines: nil, expectedError: false},
-		{inputString: inputSpace, expectedLines: nil, expectedError: false},
-		{inputString: inputTab, expectedLines: nil, expectedError: false},
-		{inputString: inputEmptyLine, expectedLines: nil, expectedError: false},
-		{inputString: inputJustSemicolon, expectedLines: nil, expectedError: false},
-		{inputString: inputOneLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
-		{inputString: inputOneLineInnerSpace, expectedLines: []string{"expense 56.78"}, expectedError: false},
-		{inputString: inputOtherText, expectedLines: []string{"any phrase"}, expectedError: false},
-		{inputString: inputLineAndEmptyLine, expectedLines: []string{"expense 56.78"}, expectedError: false},
-		{inputString: inputOneLineAndSpaces, expectedLines: []string{"expense 56.78"}, expectedError: false},
-		{inputString: inputTwoLines, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
-		{inputString: inputTwoLinesAndEmpty, expectedLines: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
-		{inputString: inputTwoLinesTogether, expectedLines: []string{"expense 56.78", "expense 56.78"}, expectedError: false},
-		{inputString: inputDoubleSemicolon, expectedLines: []string{"expense 30"}, expectedError: false},
-		{inputString: string(inputVeryLongLine), expectedLines: expectedVeryLongSlice, expectedError: false},
+		{inputString: inputEmpty, expectedSegments: nil, expectedError: false},
+		{inputString: inputSpace, expectedSegments: nil, expectedError: false},
+		{inputString: inputTab, expectedSegments: nil, expectedError: false},
+		{inputString: inputEmptyLine, expectedSegments: nil, expectedError: false},
+		{inputString: inputJustSemicolon, expectedSegments: nil, expectedError: false},
+		{inputString: inputOneLine, expectedSegments: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOneLineInnerSpace, expectedSegments: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOtherText, expectedSegments: []string{"any phrase"}, expectedError: false},
+		{inputString: inputLineAndEmptyLine, expectedSegments: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputOneLineAndSpaces, expectedSegments: []string{"expense 56.78"}, expectedError: false},
+		{inputString: inputTwoLines, expectedSegments: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
+		{inputString: inputTwoLinesAndEmpty, expectedSegments: []string{"expense 56.78", "expense 10.00"}, expectedError: false},
+		{inputString: inputTwoLinesTogether, expectedSegments: []string{"expense 56.78", "expense 56.78"}, expectedError: false},
+		{inputString: inputDoubleSemicolon, expectedSegments: []string{"expense 30"}, expectedError: false},
+		{inputString: string(inputVeryLongLine), expectedSegments: expectedVeryLongSlice, expectedError: false},
 
 		//Fail cases
 		{inputString: invalidLineNoSemicolon, expectedError: true},
 		{inputString: invalidTwoLinesNoSemicolon, expectedError: true},
 	}
 
-	//Checking line parsing results
+	//Checking segment parsing results
 	for i, aCase := range cases {
 		fInputter := NewFileInputter()
 
@@ -197,44 +197,44 @@ func TestLoadString(t *testing.T) {
 				t.Errorf("Error in case: %d. Expected error, but got none", i)
 			}
 		}
-		linesCorrectlyParsed := fInputter.compareQueueAndStrings(aCase.expectedLines)
-		if !linesCorrectlyParsed {
-			t.Errorf("Error in case: %d. Parsed lines don't match. Expected: %v", i, aCase.expectedLines)
+		segmentsCorrectlyParsed := fInputter.compareQueueAndStrings(aCase.expectedSegments)
+		if !segmentsCorrectlyParsed {
+			t.Errorf("Error in case: %d. Parsedsegments don't match. Expected: %v", i, aCase.expectedSegments)
 		}
 	}
 }
 
-//**************** Test Line Queue ****************
+//**************** Test Segment Queue ****************
 
 func TestEnqueue(t *testing.T) {
 	cases := [][]string{
 		{""},
-		{"line1"},
-		{"line1", "line2", "line3", "line4"},
+		{"segment1"},
+		{"segment1", "segment2", "segment3", "segment4"},
 	}
 	for _, aCase := range cases {
-		//Enqueue lines
+		//Enqueue segments
 		fInputter := NewFileInputter()
-		if len(fInputter.linesQueue) != 0 {
-			t.Error("Lines queue initialized not empty")
+		if len(fInputter.segmentQueue) != 0 {
+			t.Error("Segments queue initialized not empty")
 			break
 		}
-		for _, aLine := range aCase {
-			fInputter.enqueueLine(aLine)
+		for _, aSegment := range aCase {
+			fInputter.enqueueSegment(aSegment)
 		}
 
 		//Check the index variable has correct value
-		if fInputter.linesQueueInIndex != len(aCase) {
-			t.Errorf("Queue in index has value %d, expected %d", fInputter.linesQueueInIndex, len(aCase))
+		if fInputter.segmentQueueInIndex != len(aCase) {
+			t.Errorf("Queue in index has value %d, expected %d", fInputter.segmentQueueInIndex, len(aCase))
 		}
-		//Check correct lines are in the queue
-		if len(fInputter.linesQueue) != len(aCase) {
-			t.Errorf("Number of elements found in the queue: %d, expected: %d", len(fInputter.linesQueue), len(aCase))
+		//Check correct segments are in the queue
+		if len(fInputter.segmentQueue) != len(aCase) {
+			t.Errorf("Number of elements found in the queue: %d, expected: %d", len(fInputter.segmentQueue), len(aCase))
 			continue
 		}
-		for i, aLine := range aCase {
-			if aLine != fInputter.linesQueue[i] {
-				t.Errorf("Inserted element number %d is %s, expect %s", i, fInputter.linesQueue[i], aLine)
+		for i, aSegment := range aCase {
+			if aSegment != fInputter.segmentQueue[i] {
+				t.Errorf("Inserted element number %d is %s, expect %s", i, fInputter.segmentQueue[i], aSegment)
 			}
 		}
 	}
@@ -243,51 +243,51 @@ func TestEnqueue(t *testing.T) {
 
 func TestDequeue(t *testing.T) {
 	fInputter := NewFileInputter()
-	if len(fInputter.linesQueue) != 0 {
-		t.Error("Lines queue initialized not empty")
+	if len(fInputter.segmentQueue) != 0 {
+		t.Error("Segments queue initialized not empty")
 		return
 	}
-	//Enqueue test lines
-	queuedLines := []string{"line1", "line2", "line3"}
-	for _, aLine := range queuedLines {
-		fInputter.linesQueue = append(fInputter.linesQueue, aLine)
+	//Enqueue test segments
+	queuedSegments := []string{"segment1", "segment2", "segment3"}
+	for _, aSegment := range queuedSegments {
+		fInputter.segmentQueue = append(fInputter.segmentQueue, aSegment)
 	}
-	fInputter.linesQueueInIndex = len(queuedLines)
+	fInputter.segmentQueueInIndex = len(queuedSegments)
 
-	//Test correct lines are being dequeued
+	//Test correct segments are being dequeued
 	i := 0
 	for {
-		dequeuedLine, found := fInputter.dequeueLine()
+		dequeuedSegment, found := fInputter.dequeueSegment()
 		if !found {
 			break
 		}
 
-		if dequeuedLine != queuedLines[i] {
-			t.Errorf("Dequeued a line: %s, expected: %s", dequeuedLine, queuedLines[i])
+		if dequeuedSegment != queuedSegments[i] {
+			t.Errorf("Dequeued a segment: %s, expected: %s", dequeuedSegment, queuedSegments[i])
 		}
 		i++
 	}
-	if i != len(queuedLines) {
-		t.Errorf("Number of dequed elements: %d, expected: %d", i, len(queuedLines))
+	if i != len(queuedSegments) {
+		t.Errorf("Number of dequed elements: %d, expected: %d", i, len(queuedSegments))
 	}
-	if fInputter.linesQueueOutIndex != fInputter.linesQueueInIndex {
+	if fInputter.segmentQueueOutIndex != fInputter.segmentQueueInIndex {
 		t.Errorf("Queue out index hasn't reached in index")
 	}
-	if dequeuedLine, found := fInputter.dequeueLine(); dequeuedLine != "" || found {
+	if dequeuedSegment, found := fInputter.dequeueSegment(); dequeuedSegment != "" || found {
 		t.Errorf("Incorrect dequeue of an empty queue")
 	}
 }
 
 func TestEmptyQueue(t *testing.T) {
 	fInputter := NewFileInputter()
-	queuedLines := []string{"line1", "line2", "line3"}
-	for _, aLine := range queuedLines {
-		fInputter.linesQueue = append(fInputter.linesQueue, aLine)
+	queuedSegments := []string{"segment1", "segment2", "segment3"}
+	for _, aSegment := range queuedSegments {
+		fInputter.segmentQueue = append(fInputter.segmentQueue, aSegment)
 	}
-	fInputter.linesQueueInIndex = len(queuedLines)
+	fInputter.segmentQueueInIndex = len(queuedSegments)
 
 	fInputter.emptyQueue()
-	if _, found := fInputter.dequeueLine(); found {
+	if _, found := fInputter.dequeueSegment(); found {
 		t.Errorf("Didn't empty the queue")
 	}
 
@@ -301,11 +301,11 @@ func TestEmptyQueue(t *testing.T) {
 
 func TestIsEmpty(t *testing.T) {
 	fInputter := NewFileInputter()
-	queuedLines := []string{"line1", "line2", "line3"}
-	for _, aLine := range queuedLines {
-		fInputter.linesQueue = append(fInputter.linesQueue, aLine)
+	queuedSegments := []string{"segment1", "segment2", "segment3"}
+	for _, aSegment := range queuedSegments {
+		fInputter.segmentQueue = append(fInputter.segmentQueue, aSegment)
 	}
-	fInputter.linesQueueInIndex = len(queuedLines)
+	fInputter.segmentQueueInIndex = len(queuedSegments)
 
 	isEmptyResponse := fInputter.queueIsEmpty()
 	if isEmptyResponse {
@@ -321,20 +321,20 @@ func TestIsEmpty(t *testing.T) {
 
 //**************** Utilities ****************
 
-func (fi *FileInputter) compareQueueAndStrings(lines []string) (equal bool) {
-	numLines := len(lines)
-	for i := 0; i < numLines; i++ {
-		dequeuedLine, found := fi.dequeueLine()
+func (fi *FileInputter) compareQueueAndStrings(segments []string) (equal bool) {
+	numSegments := len(segments)
+	for i := 0; i < numSegments; i++ {
+		dequeuedSegment, found := fi.dequeueSegment()
 		if !found {
 			//Number of elements unequal
 			return false
 		}
-		if dequeuedLine != lines[i] {
-			//Dequed line not equal to slice line
+		if dequeuedSegment != segments[i] {
+			//Dequed segment not equal to slice segment
 			return false
 		}
 	}
-	if _, found := fi.dequeueLine(); found {
+	if _, found := fi.dequeueSegment(); found {
 		//Queue has more elements than slice
 		return false
 	}
@@ -343,30 +343,30 @@ func (fi *FileInputter) compareQueueAndStrings(lines []string) (equal bool) {
 
 func TestCompareQueueAndStrings(t *testing.T) {
 	cases := []struct {
-		linesToEnqueue   []string
-		linesToCompareTo []string
-		shouldBeEqual    bool
+		segmentsToEnqueue   []string
+		segmentsToCompareTo []string
+		shouldBeEqual       bool
 	}{
-		{linesToEnqueue: nil, linesToCompareTo: nil, shouldBeEqual: true},
-		{linesToEnqueue: []string{""}, linesToCompareTo: []string{""}, shouldBeEqual: true},
-		{linesToEnqueue: []string{"hello"}, linesToCompareTo: []string{"hello"}, shouldBeEqual: true},
-		{linesToEnqueue: []string{"hello", "world"}, linesToCompareTo: []string{"hello", "world"}, shouldBeEqual: true},
-		{linesToEnqueue: nil, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
-		{linesToEnqueue: []string{""}, linesToCompareTo: nil, shouldBeEqual: false},
-		{linesToEnqueue: []string{""}, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
-		{linesToEnqueue: []string{"b"}, linesToCompareTo: []string{"a"}, shouldBeEqual: false},
-		{linesToEnqueue: []string{"hello", "world"}, linesToCompareTo: []string{"hello"}, shouldBeEqual: false},
-		{linesToEnqueue: []string{"hello", "world", "bye"}, linesToCompareTo: []string{"hello", "world"}, shouldBeEqual: false},
-		{linesToEnqueue: []string{"hello", "world", "bye"}, linesToCompareTo: nil, shouldBeEqual: false},
+		{segmentsToEnqueue: nil, segmentsToCompareTo: nil, shouldBeEqual: true},
+		{segmentsToEnqueue: []string{""}, segmentsToCompareTo: []string{""}, shouldBeEqual: true},
+		{segmentsToEnqueue: []string{"hello"}, segmentsToCompareTo: []string{"hello"}, shouldBeEqual: true},
+		{segmentsToEnqueue: []string{"hello", "world"}, segmentsToCompareTo: []string{"hello", "world"}, shouldBeEqual: true},
+		{segmentsToEnqueue: nil, segmentsToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{""}, segmentsToCompareTo: nil, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{""}, segmentsToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{"b"}, segmentsToCompareTo: []string{"a"}, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{"hello", "world"}, segmentsToCompareTo: []string{"hello"}, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{"hello", "world", "bye"}, segmentsToCompareTo: []string{"hello", "world"}, shouldBeEqual: false},
+		{segmentsToEnqueue: []string{"hello", "world", "bye"}, segmentsToCompareTo: nil, shouldBeEqual: false},
 	}
 
 	for i, aCase := range cases {
 		fInputter := NewFileInputter()
-		for _, aLine := range aCase.linesToEnqueue {
-			fInputter.enqueueLine(aLine)
+		for _, aSegment := range aCase.segmentsToEnqueue {
+			fInputter.enqueueSegment(aSegment)
 		}
 
-		comparatorResult := fInputter.compareQueueAndStrings(aCase.linesToCompareTo)
+		comparatorResult := fInputter.compareQueueAndStrings(aCase.segmentsToCompareTo)
 		if aCase.shouldBeEqual {
 			if !comparatorResult {
 				t.Errorf("CompareQueueAndStrings should return true, but returns false. Case number: %d", i)

@@ -1,3 +1,7 @@
+//fileinput package processes a text file and breaks it up into
+//semicolon separated string segments. The package provides the first
+//level of parsing and presents the rest of the program with a cleaner
+//input.
 package fileinput
 
 import (
@@ -10,18 +14,21 @@ import (
 
 //**************** File Inputter Setup ****************
 
+//File Inputter loads a text file, processes it and outputs the
+//broken up segments.
 type FileInputter struct {
-	linesQueue         []string
-	linesQueueInIndex  int
-	linesQueueOutIndex int
+	segmentQueue         []string
+	segmentQueueInIndex  int
+	segmentQueueOutIndex int
 }
 
 func NewFileInputter() *FileInputter {
-	return &FileInputter{linesQueue: []string{}, linesQueueInIndex: 0, linesQueueOutIndex: 0}
+	return &FileInputter{segmentQueue: []string{}, segmentQueueInIndex: 0, segmentQueueOutIndex: 0}
 }
 
 //**************** Loading Raw Data ****************
 
+//LoadFiles reads a textfile and processes it into segments represented by a string.
 func (fi *FileInputter) LoadFile(filepath string) (loadingError error) {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -38,70 +45,71 @@ func (fi *FileInputter) loadString(rawInput string) (parsingError error) {
 	splitByNewline := strings.Split(rawInput, "\n")
 	//break up by newline
 	for _, stringNoNewline := range splitByNewline {
-		lines := strings.SplitAfter(stringNoNewline, ";")
+		segments := strings.SplitAfter(stringNoNewline, ";")
 		//break up by semicolon
 
-		for _, untrimmedLine := range lines {
-			trimmedLine := strings.Trim(untrimmedLine, " \t")
+		for _, untrimmedSegment := range segments {
+			trimmedSegment := strings.Trim(untrimmedSegment, " \t")
 
-			//A line with just whitespaces should pass
-			if len(trimmedLine) == 0 {
+			//A segment with just whitespaces should pass
+			if len(trimmedSegment) == 0 {
 				continue
 			}
 
 			//check if last character is a semicolon
-			if trimmedLine == strings.TrimRight(trimmedLine, ";") {
+			if trimmedSegment == strings.TrimRight(trimmedSegment, ";") {
 				fi.emptyQueue()
 				return errors.New("Last character is not a semicolon")
 			}
 
-			trimmedLineNoSemicolon := strings.TrimRight(trimmedLine, ";")
+			trimmedSegmentNoSemicolon := strings.TrimRight(trimmedSegment, ";")
 
 			//trim further to eliminate inner whitespaces
-			finalLine := strings.Trim(trimmedLineNoSemicolon, " \t")
+			finalSegment := strings.Trim(trimmedSegmentNoSemicolon, " \t")
 
 			//check if everything got trimmed
-			if len(finalLine) == 0 {
+			if len(finalSegment) == 0 {
 				continue
 			}
 
-			fi.enqueueLine(finalLine)
+			fi.enqueueSegment(finalSegment)
 		}
 	}
 	return nil
 }
 
-//**************** Extracting Lines ****************
+//**************** Extracting Segments ****************
 
-func (fi *FileInputter) ExtractLine() (line string, found bool) {
-	return fi.dequeueLine()
+//ExtractSegment returns the next extracted segment.
+func (fi *FileInputter) ExtractSegment() (segment string, found bool) {
+	return fi.dequeueSegment()
 }
 
-//**************** Managing Line Queue ****************
+//**************** Managing Segment Queue ****************
 
-func (fi *FileInputter) dequeueLine() (line string, found bool) {
-	gAssert.Assert(fi.linesQueueInIndex >= fi.linesQueueOutIndex, "FileInputter is in an inconsistent state - In index is < outer index")
-	if fi.linesQueueInIndex == fi.linesQueueOutIndex {
+func (fi *FileInputter) dequeueSegment() (segment string, found bool) {
+	gAssert.Assert(fi.segmentQueueInIndex >= fi.segmentQueueOutIndex, "FileInputter is in an inconsistent state - In index is < outer index")
+	if fi.segmentQueueInIndex == fi.segmentQueueOutIndex {
 		return "", false
 	}
-	line = fi.linesQueue[fi.linesQueueOutIndex]
+	segment = fi.segmentQueue[fi.segmentQueueOutIndex]
 
-	fi.linesQueueOutIndex++
-	return line, true
+	fi.segmentQueueOutIndex++
+	return segment, true
 }
 
-func (fi *FileInputter) enqueueLine(line string) {
-	gAssert.Assert(fi != nil, "FileInputter is not initialized properly - lines Queue is nil")
-	fi.linesQueue = append(fi.linesQueue, line)
-	fi.linesQueueInIndex++
+func (fi *FileInputter) enqueueSegment(segment string) {
+	gAssert.Assert(fi != nil, "FileInputter is not initialized properly - segment Queue is nil")
+	fi.segmentQueue = append(fi.segmentQueue, segment)
+	fi.segmentQueueInIndex++
 }
 
 func (fi *FileInputter) emptyQueue() {
-	fi.linesQueue = []string{}
-	fi.linesQueueInIndex = 0
-	fi.linesQueueOutIndex = 0
+	fi.segmentQueue = []string{}
+	fi.segmentQueueInIndex = 0
+	fi.segmentQueueOutIndex = 0
 }
 
 func (fi *FileInputter) queueIsEmpty() bool {
-	return len(fi.linesQueue) == 0
+	return len(fi.segmentQueue) == 0
 }
